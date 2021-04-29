@@ -3468,7 +3468,33 @@
     }, {});
   });
   var oldActiveDroppable = '';
+  var allDropZone = function allDropZone(x, y) {
+    var stack = [];
+    var allElements = document.querySelectorAll('div[class*="-drop-zone"]');
+    var len = allElements.length;
+
+    for (var i = 0; i < len; i++) {
+      var elm = allElements[i];
+      var rect = elm.getBoundingClientRect();
+
+      if (y >= rect.top && y <= rect.bottom && x >= rect.left && x <= rect.right) {
+        stack.push(elm);
+      }
+    }
+
+    return stack;
+  };
   var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
+    var droppedOnEle = allDropZone(pageBorderBox.center.x, pageBorderBox.center.y).find(function (data) {
+      return data.className.includes('-drop-zone');
+    });
+
+    if (droppedOnEle) {
+      var _values;
+
+      return values((_values = {}, _values[droppedOnEle.className] = droppables[droppedOnEle.className], _values));
+    }
+
     if (document.getElementById('appear-on-top')) {
       var draggableParentId = oldActiveDroppable !== draggable.descriptor.droppableId ? document.getElementById('appear-on-top').classList[0] + "-folder-items" : draggable.descriptor.droppableId;
       var parentRndComponent = document.getElementsByClassName(draggableParentId.replace('-folder-items', ''))[0];
@@ -3479,7 +3505,7 @@
       if (isInsideParent) {
         var _newDroppables;
 
-        newDroppables = (_newDroppables = {}, _newDroppables[draggableParentId] = droppables[draggableParentId], _newDroppables['new-folder'] = droppables['new-folder'], _newDroppables);
+        newDroppables = (_newDroppables = {}, _newDroppables[draggableParentId] = droppables[draggableParentId], _newDroppables);
       } else {
         oldActiveDroppable = document.getElementById('appear-on-top').classList[0] + "-folder-items";
       }
