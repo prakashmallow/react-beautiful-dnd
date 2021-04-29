@@ -472,9 +472,9 @@ var toDraggableMap = memoizeOne(function (draggables) {
   }, {});
 });
 var oldActiveDroppable = '';
-var allTheElements = function allTheElements(x, y) {
+var allDropZone = function allDropZone(x, y) {
   var stack = [];
-  var allElements = document.getElementsByTagName('*');
+  var allElements = document.querySelectorAll('div[class*="-drop-zone"]');
   var len = allElements.length;
 
   for (var i = 0; i < len; i++) {
@@ -489,7 +489,7 @@ var allTheElements = function allTheElements(x, y) {
   return stack;
 };
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
-  var droppedOnEle = allTheElements(pageBorderBox.center.x, pageBorderBox.center.y).find(function (data) {
+  var droppedOnEle = allDropZone(pageBorderBox.center.x, pageBorderBox.center.y).find(function (data) {
     return data.className.includes('-drop-zone');
   });
 

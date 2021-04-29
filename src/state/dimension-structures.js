@@ -25,15 +25,15 @@ export const toDraggableMap = memoizeOne(
 );
 
 let oldActiveDroppable = '';
-export const allTheElements = (x, y) => {
+export const allDropZone = (x, y) => {
   let stack = [];
 
-  let allElements = document.getElementsByTagName('*');
-  let len = allElements.length;
+  const allElements = document.querySelectorAll('div[class*="-drop-zone"]');
+  const len = allElements.length;
 
   for (let i = 0; i < len; i++) {
-    let elm = allElements[i];
-    let rect = elm.getBoundingClientRect();
+    const elm = allElements[i];
+    const rect = elm.getBoundingClientRect();
 
     if (
       y >= rect.top &&
@@ -48,18 +48,21 @@ export const allTheElements = (x, y) => {
 };
 
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
-  let droppedOnEle = allTheElements(pageBorderBox.center.x , pageBorderBox.center.y).find((data) =>
-    data.className.includes('-drop-zone'),
-  );
-  if(droppedOnEle){
-    return values({ [droppedOnEle.className]: droppables[droppedOnEle.className], })
+  const droppedOnEle = allDropZone(
+    pageBorderBox.center.x,
+    pageBorderBox.center.y,
+  ).find((data) => data.className.includes('-drop-zone'));
+  if (droppedOnEle) {
+    return values({
+      [droppedOnEle.className]: droppables[droppedOnEle.className],
+    });
   }
   if (document.getElementById('appear-on-top')) {
     const draggableParentId =
       oldActiveDroppable !== draggable.descriptor.droppableId
         ? `${
-          document.getElementById('appear-on-top').classList[0]
-        }-folder-items`
+            document.getElementById('appear-on-top').classList[0]
+          }-folder-items`
         : draggable.descriptor.droppableId;
     const parentRndComponent = document.getElementsByClassName(
       draggableParentId.replace('-folder-items', ''),
