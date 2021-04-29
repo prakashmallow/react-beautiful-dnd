@@ -25,14 +25,41 @@ export const toDraggableMap = memoizeOne(
 );
 
 let oldActiveDroppable = '';
+export const allTheElements = (x, y) => {
+  let stack = [];
+
+  let allElements = document.getElementsByTagName('*');
+  let len = allElements.length;
+
+  for (let i = 0; i < len; i++) {
+    let elm = allElements[i];
+    let rect = elm.getBoundingClientRect();
+
+    if (
+      y >= rect.top &&
+      y <= rect.bottom &&
+      x >= rect.left &&
+      x <= rect.right
+    ) {
+      stack.push(elm);
+    }
+  }
+  return stack;
+};
 
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
+  let droppedOnEle = allTheElements(pageBorderBox.center.x , pageBorderBox.center.y).find((data) =>
+    data.className.includes('-drop-zone'),
+  );
+  if(droppedOnEle){
+    return values({ [droppedOnEle.className]: droppables[droppedOnEle.className], })
+  }
   if (document.getElementById('appear-on-top')) {
     const draggableParentId =
       oldActiveDroppable !== draggable.descriptor.droppableId
         ? `${
-            document.getElementById('appear-on-top').classList[0]
-          }-folder-items`
+          document.getElementById('appear-on-top').classList[0]
+        }-folder-items`
         : draggable.descriptor.droppableId;
     const parentRndComponent = document.getElementsByClassName(
       draggableParentId.replace('-folder-items', ''),
@@ -49,7 +76,6 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     if (isInsideParent) {
       newDroppables = {
         [draggableParentId]: droppables[draggableParentId],
-        'new-folder': droppables['new-folder'],
       };
     } else {
       oldActiveDroppable = `${
