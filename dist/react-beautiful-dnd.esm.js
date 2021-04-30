@@ -472,25 +472,13 @@ var toDraggableMap = memoizeOne(function (draggables) {
   }, {});
 });
 var oldActiveDroppable = '';
-var allDropZone = function allDropZone(x, y) {
-  var stack = [];
-  var allElements = document.querySelectorAll('div[class*="-drop-zone"]');
-  var len = allElements.length;
-
-  for (var i = 0; i < len; i++) {
-    var elm = allElements[i];
-    var rect = elm.getBoundingClientRect();
-
-    if (y >= rect.top && y <= rect.bottom && x >= rect.left && x <= rect.right) {
-      stack.push(elm);
-    }
-  }
-
-  return stack;
-};
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
-  var droppedOnEle = allDropZone(pageBorderBox.center.x, pageBorderBox.center.y).find(function (data) {
-    return data.className.includes('-drop-zone');
+  var _pageBorderBox$center = pageBorderBox.center,
+      x = _pageBorderBox$center.x,
+      y = _pageBorderBox$center.y;
+  var droppedOnEle = document.elementsFromPoint(x, y).find(function (_ref) {
+    var className = _ref.className;
+    return className.includes('-drop-zone');
   });
 
   if (droppedOnEle) {
@@ -499,8 +487,14 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
     return values((_values = {}, _values[droppedOnEle.className] = droppables[droppedOnEle.className], _values));
   }
 
-  if (document.getElementById('appear-on-top')) {
-    var draggableParentId = oldActiveDroppable !== draggable.descriptor.droppableId ? document.getElementById('appear-on-top').classList[0] + "-folder-items" : draggable.descriptor.droppableId;
+  var isHome = document.elementsFromPoint(x, y).some(function (_ref2) {
+    var id = _ref2.id;
+    return id.includes('homeFolderModalMount');
+  });
+  var topElement = isHome ? document.getElementById('appear-home-on-top') : document.getElementById('appear-on-top');
+
+  if (topElement) {
+    var draggableParentId = oldActiveDroppable !== draggable.descriptor.droppableId ? topElement.classList[0] + "-folder-items" : draggable.descriptor.droppableId;
     var parentRndComponent = document.getElementsByClassName(draggableParentId.replace('-folder-items', ''))[0];
     var parentPosition = parentRndComponent.getBoundingClientRect();
     var newDroppables = {};
@@ -511,7 +505,7 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
 
       newDroppables = (_newDroppables = {}, _newDroppables[draggableParentId] = droppables[draggableParentId], _newDroppables);
     } else {
-      oldActiveDroppable = document.getElementById('appear-on-top').classList[0] + "-folder-items";
+      oldActiveDroppable = topElement.classList[0] + "-folder-items";
     }
 
     return isInsideParent ? values(newDroppables) : values(droppables);
