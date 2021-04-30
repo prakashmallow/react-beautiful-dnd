@@ -25,44 +25,26 @@ export const toDraggableMap = memoizeOne(
 );
 
 let oldActiveDroppable = '';
-export const allDropZone = (x, y) => {
-  let stack = [];
-
-  const allElements = document.querySelectorAll('div[class*="-drop-zone"]');
-  const len = allElements.length;
-
-  for (let i = 0; i < len; i++) {
-    const elm = allElements[i];
-    const rect = elm.getBoundingClientRect();
-
-    if (
-      y >= rect.top &&
-      y <= rect.bottom &&
-      x >= rect.left &&
-      x <= rect.right
-    ) {
-      stack.push(elm);
-    }
-  }
-  return stack;
-};
-
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
-  const droppedOnEle = allDropZone(
-    pageBorderBox.center.x,
-    pageBorderBox.center.y,
-  ).find((data) => data.className.includes('-drop-zone'));
+  const { x, y } = pageBorderBox.center;
+  const droppedOnEle = document
+    .elementsFromPoint(x, y)
+    .find(({ className }) => className.includes('-drop-zone'));
   if (droppedOnEle) {
     return values({
       [droppedOnEle.className]: droppables[droppedOnEle.className],
     });
   }
-  if (document.getElementById('appear-on-top')) {
+  const isHome = document
+    .elementsFromPoint(x, y)
+    .some(({ id }) => id.includes('homeFolderModalMount'));
+  const topElement = isHome
+    ? document.getElementById('appear-home-on-top')
+    : document.getElementById('appear-on-top');
+  if (topElement) {
     const draggableParentId =
       oldActiveDroppable !== draggable.descriptor.droppableId
-        ? `${
-            document.getElementById('appear-on-top').classList[0]
-          }-folder-items`
+        ? `${topElement.classList[0]}-folder-items`
         : draggable.descriptor.droppableId;
     const parentRndComponent = document.getElementsByClassName(
       draggableParentId.replace('-folder-items', ''),
@@ -81,9 +63,7 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
         [draggableParentId]: droppables[draggableParentId],
       };
     } else {
-      oldActiveDroppable = `${
-        document.getElementById('appear-on-top').classList[0]
-      }-folder-items`;
+      oldActiveDroppable = `${topElement.classList[0]}-folder-items`;
     }
     return isInsideParent ? values(newDroppables) : values(droppables);
   }
