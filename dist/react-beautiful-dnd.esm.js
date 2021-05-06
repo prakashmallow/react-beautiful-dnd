@@ -4313,7 +4313,7 @@ var getBestScrollableDroppable = (function (_ref) {
 });
 
 var config = {
-  startFromPercentage: 0.25,
+  startFromPercentage: 0.75,
   maxScrollAtPercentage: 0.05,
   maxPixelScroll: 28,
   ease: function ease(percentage) {
