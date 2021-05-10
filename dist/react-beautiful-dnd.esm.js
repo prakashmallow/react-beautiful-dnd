@@ -473,10 +473,7 @@ var toDraggableMap = memoizeOne(function (draggables) {
 });
 var oldActiveDroppable = '';
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
-  var _pageBorderBox$center = pageBorderBox.center,
-      x = _pageBorderBox$center.x,
-      y = _pageBorderBox$center.y;
-  var droppedOnEle = document.elementsFromPoint(x, y).find(function (_ref) {
+  var droppedOnEle = document.elementsFromPoint(pageBorderBox.top, pageBorderBox.left).find(function (_ref) {
     var className = _ref.className;
     return className.includes('-drop-zone');
   });
@@ -487,8 +484,22 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
     return values((_values = {}, _values[droppedOnEle.className] = droppables[droppedOnEle.className], _values));
   }
 
-  var isHome = document.elementsFromPoint(x, y).some(function (_ref2) {
+  var _pageBorderBox$center = pageBorderBox.center,
+      x = _pageBorderBox$center.x,
+      y = _pageBorderBox$center.y;
+  var isActivity = document.elementsFromPoint(x, y).some(function (_ref2) {
     var id = _ref2.id;
+    return id.includes('activityModalMount');
+  });
+
+  if (isActivity) {
+    return values({
+      activities: droppables.activities
+    });
+  }
+
+  var isHome = document.elementsFromPoint(x, y).some(function (_ref3) {
+    var id = _ref3.id;
     return id.includes('homeFolderModalMount');
   });
   var topElement = isHome ? document.getElementById('appear-home-on-top') : document.getElementById('appear-on-top');
@@ -4313,7 +4324,7 @@ var getBestScrollableDroppable = (function (_ref) {
 });
 
 var config = {
-  startFromPercentage: 0.25,
+  startFromPercentage: 0.35,
   maxScrollAtPercentage: 0.05,
   maxPixelScroll: 28,
   ease: function ease(percentage) {
