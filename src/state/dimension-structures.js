@@ -27,21 +27,21 @@ export const toDraggableMap = memoizeOne(
 let oldActiveDroppable = '';
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
   const droppedOnEle = document
-    .elementsFromPoint(pageBorderBox.top, pageBorderBox.left)
+    .elementsFromPoint(pageBorderBox.left, pageBorderBox.top)
     .find(({ className }) => className.includes('-drop-zone'));
   if (droppedOnEle) {
     return values({
       [droppedOnEle.className]: droppables[droppedOnEle.className],
     });
   }
-  const { x, y } = pageBorderBox.center;
   const isActivity = document
-    .elementsFromPoint(x, y)
+    .elementsFromPoint(pageBorderBox.left, pageBorderBox.top)
     .some(({ id }) => id.includes('activityModalMount'));
   if (isActivity) {
     return values({ activities: droppables.activities });
   }
 
+  const { x, y } = pageBorderBox.center;
   const isHome = document
     .elementsFromPoint(x, y)
     .some(({ id }) => id.includes('homeFolderModalMount'));
