@@ -26,15 +26,22 @@ export const toDraggableMap = memoizeOne(
 
 let oldActiveDroppable = '';
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
-  const { x, y } = pageBorderBox.center;
   const droppedOnEle = document
-    .elementsFromPoint(x, y)
+    .elementsFromPoint(pageBorderBox.top, pageBorderBox.left)
     .find(({ className }) => className.includes('-drop-zone'));
   if (droppedOnEle) {
     return values({
       [droppedOnEle.className]: droppables[droppedOnEle.className],
     });
   }
+  const { x, y } = pageBorderBox.center;
+  const isActivity = document
+    .elementsFromPoint(x, y)
+    .some(({ id }) => id.includes('activityModalMount'));
+  if (isActivity) {
+    return values({ activities: droppables.activities });
+  }
+
   const isHome = document
     .elementsFromPoint(x, y)
     .some(({ id }) => id.includes('homeFolderModalMount'));
