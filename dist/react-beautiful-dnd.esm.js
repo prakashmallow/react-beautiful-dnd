@@ -473,7 +473,7 @@ var toDraggableMap = memoizeOne(function (draggables) {
 });
 var oldActiveDroppable = '';
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
-  var droppedOnEle = document.elementsFromPoint(pageBorderBox.top, pageBorderBox.left).find(function (_ref) {
+  var droppedOnEle = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref) {
     var className = _ref.className;
     return className.includes('-drop-zone');
   });
@@ -484,10 +484,7 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
     return values((_values = {}, _values[droppedOnEle.className] = droppables[droppedOnEle.className], _values));
   }
 
-  var _pageBorderBox$center = pageBorderBox.center,
-      x = _pageBorderBox$center.x,
-      y = _pageBorderBox$center.y;
-  var isActivity = document.elementsFromPoint(x, y).some(function (_ref2) {
+  var isActivity = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).some(function (_ref2) {
     var id = _ref2.id;
     return id.includes('activityModalMount');
   });
@@ -498,6 +495,9 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
     });
   }
 
+  var _pageBorderBox$center = pageBorderBox.center,
+      x = _pageBorderBox$center.x,
+      y = _pageBorderBox$center.y;
   var isHome = document.elementsFromPoint(x, y).some(function (_ref3) {
     var id = _ref3.id;
     return id.includes('homeFolderModalMount');
