@@ -471,6 +471,23 @@ var toDraggableMap = memoizeOne(function (draggables) {
     return previous;
   }, {});
 });
+var filter = function filter(obj, predicate) {
+  var result = {},
+      key;
+
+  for (key in obj) {
+    if (obj.hasOwnProperty(key) && !predicate(key)) {
+      result[key] = obj[key];
+    }
+  }
+
+  return result;
+};
+var getFilteredDroppableList = function getFilteredDroppableList(obj) {
+  return filter(obj, function (data) {
+    return data.includes('-drop-zone');
+  });
+};
 var oldActiveDroppable = '';
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
   var droppedOnEle = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref) {
@@ -519,10 +536,10 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
       oldActiveDroppable = topElement.classList[0] + "-folder-items";
     }
 
-    return isInsideParent ? values(newDroppables) : values(droppables);
+    return isInsideParent ? values(getFilteredDroppableList(newDroppables)) : values(getFilteredDroppableList(droppables));
   }
 
-  return values(droppables);
+  return values(getFilteredDroppableList(droppables));
 };
 var toDroppableList = memoizeOne(function (droppables) {
   return values(droppables);
