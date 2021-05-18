@@ -23,6 +23,17 @@ export const toDraggableMap = memoizeOne(
       return previous;
     }, {}),
 );
+export const filter = (obj, predicate) => {
+  let result = {}, key;
+  for (key in obj) {
+    if (obj.hasOwnProperty(key) && !predicate(key)) {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+};
+
+export const getFilteredDroppableList = (obj) => filter(obj, (data) => data.includes('-drop-zone'));
 
 let oldActiveDroppable = '';
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
@@ -72,9 +83,11 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     } else {
       oldActiveDroppable = `${topElement.classList[0]}-folder-items`;
     }
-    return isInsideParent ? values(newDroppables) : values(droppables);
+    return isInsideParent
+      ? values(getFilteredDroppableList(newDroppables))
+      : values(getFilteredDroppableList(droppables));
   }
-  return values(droppables);
+  return values(getFilteredDroppableList(droppables));
 };
 
 export const toDroppableList = memoizeOne(
