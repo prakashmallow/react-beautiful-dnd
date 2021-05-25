@@ -471,10 +471,9 @@ var toDraggableMap = memoizeOne(function (draggables) {
     return previous;
   }, {});
 });
-var oldActiveDroppable = '';
-var filter = memoizeOne(function (obj, predicate) {
-  var key;
-  var result = {};
+var filter = function filter(obj, predicate) {
+  var result = {},
+      key;
 
   for (key in obj) {
     if (obj.hasOwnProperty(key) && !predicate(key)) {
@@ -483,42 +482,31 @@ var filter = memoizeOne(function (obj, predicate) {
   }
 
   return result;
-});
-var getFilteredDroppableList = memoizeOne(function (obj) {
+};
+var getFilteredDroppableList = function getFilteredDroppableList(obj) {
   return filter(obj, function (data) {
     return data.includes('-drop-zone');
   });
-});
-var getElement = memoizeOne(function (id) {
-  return document.getElementsByClassName(id.replace('-folder-items', ''))[0];
-});
-var getDraggableParent = memoizeOne(function (draggable, topElement, isHome) {
-  var droppableId = draggable.descriptor.droppableId;
-
-  if (oldActiveDroppable === droppableId && !((getElement(droppableId) && getElement(droppableId).classList && [].concat(getElement(droppableId).classList).includes('home')) ^ isHome)) {
-    return droppableId;
-  }
-
-  return topElement.classList[0] + "-folder-items";
-});
-var getDroppableList = memoizeOne(function (draggable, pageBorderBox, droppables) {
-  var dropZoneElement = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref) {
+};
+var oldActiveDroppable = '';
+var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
+  var droppedOnEle = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref) {
     var className = _ref.className;
     return className.includes('-drop-zone');
   });
 
-  if (dropZoneElement) {
+  if (droppedOnEle) {
     var _values;
 
-    return values((_values = {}, _values[dropZoneElement.className] = droppables[dropZoneElement.className], _values));
+    return values((_values = {}, _values[droppedOnEle.className] = droppables[droppedOnEle.className], _values));
   }
 
-  var isDropOnActivity = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).some(function (_ref2) {
+  var isActivity = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).some(function (_ref2) {
     var id = _ref2.id;
     return id.includes('activityModalMount');
   });
 
-  if (isDropOnActivity) {
+  if (isActivity) {
     return values({
       activities: droppables.activities
     });
@@ -534,11 +522,11 @@ var getDroppableList = memoizeOne(function (draggable, pageBorderBox, droppables
   var topElement = isHome ? document.getElementById('appear-home-on-top') : document.getElementById('appear-on-top');
 
   if (topElement) {
-    var draggableParentId = getDraggableParent(draggable, topElement, isHome);
-    var parentRndComponent = getElement(draggableParentId);
+    var draggableParentId = oldActiveDroppable !== draggable.descriptor.droppableId ? topElement.classList[0] + "-folder-items" : draggable.descriptor.droppableId;
+    var parentRndComponent = document.getElementsByClassName(draggableParentId.replace('-folder-items', ''))[0];
     var parentPosition = parentRndComponent.getBoundingClientRect();
-    var isInsideParent = !(x > parentPosition.right || x < parentPosition.left || y < parentPosition.top || y > parentPosition.bottom);
     var newDroppables = {};
+    var isInsideParent = !(pageBorderBox.center.x > parentPosition.right || pageBorderBox.center.x < parentPosition.left || pageBorderBox.center.y < parentPosition.top || pageBorderBox.center.y > parentPosition.bottom);
 
     if (isInsideParent) {
       var _newDroppables;
@@ -552,7 +540,7 @@ var getDroppableList = memoizeOne(function (draggable, pageBorderBox, droppables
   }
 
   return values(getFilteredDroppableList(droppables));
-});
+};
 var toDroppableList = memoizeOne(function (droppables) {
   return values(droppables);
 });
