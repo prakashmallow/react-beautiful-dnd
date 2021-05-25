@@ -24,7 +24,7 @@ export const toDraggableMap = memoizeOne(
     }, {}),
 );
 export const filter = (obj, predicate) => {
-  let result = {}, key;
+  let key, result = {};
   for (key in obj) {
     if (obj.hasOwnProperty(key) && !predicate(key)) {
       result[key] = obj[key];
@@ -33,9 +33,48 @@ export const filter = (obj, predicate) => {
   return result;
 };
 
-export const getFilteredDroppableList = (obj) => filter(obj, (data) => data.includes('-drop-zone'));
+export const getElement = memoizeOne(
+  (id) => document.getElementsByClassName(id.replace('-folder-items', ''))[0],
+);
 
-let oldActiveDroppable = '';
+export const getFilteredDroppableList = (obj) =>
+  filter(obj, (data) => data.includes('-drop-zone'));
+
+export const checkIsItemInsideFolder = (
+  droppableId,
+  isHome,
+  { x, y },
+  droppables,
+) => {
+  const droppableElement = getElement(droppableId);
+  if (
+    droppableElement &&
+    droppableElement.classList &&
+    !(droppableElement.className.includes('home-activity') ^ isHome)
+  ) {
+    const container = droppables[droppableId].subject.active;
+    return (
+      x > container.right ||
+      x < container.left ||
+      y < container.top ||
+      y > container.bottom
+    );
+  }
+  return true;
+};
+
+export const getDraggableParentId = (droppables, isHome, center) => {
+  const foldersLIst = filter(
+    droppables,
+    (data) =>
+      data.includes('-drop-zone') ||
+      data.includes('activities') ||
+      data.includes('captures') ||
+      checkIsItemInsideFolder(data, isHome, center, droppables),
+  );
+  return Object.keys(foldersLIst)[0];
+};
+
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
   const droppedOnEle = document
     .elementsFromPoint(pageBorderBox.left, pageBorderBox.top)
@@ -61,31 +100,11 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     : document.getElementById('appear-on-top');
   if (topElement) {
     const draggableParentId =
-      oldActiveDroppable !== draggable.descriptor.droppableId
-        ? `${topElement.classList[0]}-folder-items`
-        : draggable.descriptor.droppableId;
-    const parentRndComponent = document.getElementsByClassName(
-      draggableParentId.replace('-folder-items', ''),
-    )[0];
-    const parentPosition = parentRndComponent.getBoundingClientRect();
-    let newDroppables = {};
-    const isInsideParent = !(
-      pageBorderBox.center.x > parentPosition.right ||
-      pageBorderBox.center.x < parentPosition.left ||
-      pageBorderBox.center.y < parentPosition.top ||
-      pageBorderBox.center.y > parentPosition.bottom
-    );
-
-    if (isInsideParent) {
-      newDroppables = {
-        [draggableParentId]: droppables[draggableParentId],
-      };
-    } else {
-      oldActiveDroppable = `${topElement.classList[0]}-folder-items`;
-    }
-    return isInsideParent
-      ? values(getFilteredDroppableList(newDroppables))
-      : values(getFilteredDroppableList(droppables));
+      getDraggableParentId(droppables, !!isHome, pageBorderBox.center) ||
+      `${topElement.classList[0]}-folder-items`;
+    return values({
+      [draggableParentId]: droppables[draggableParentId],
+    });
   }
   return values(getFilteredDroppableList(droppables));
 };

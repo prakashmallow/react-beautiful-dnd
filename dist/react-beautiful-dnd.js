@@ -3468,8 +3468,8 @@
     }, {});
   });
   var filter = function filter(obj, predicate) {
-    var result = {},
-        key;
+    var key,
+        result = {};
 
     for (key in obj) {
       if (obj.hasOwnProperty(key) && !predicate(key)) {
@@ -3479,15 +3479,35 @@
 
     return result;
   };
+  var getElement = memoizeOne(function (id) {
+    return document.getElementsByClassName(id.replace('-folder-items', ''))[0];
+  });
   var getFilteredDroppableList = function getFilteredDroppableList(obj) {
     return filter(obj, function (data) {
       return data.includes('-drop-zone');
     });
   };
-  var oldActiveDroppable = '';
+  var checkIsItemInsideFolder = function checkIsItemInsideFolder(droppableId, isHome, _ref, droppables) {
+    var x = _ref.x,
+        y = _ref.y;
+    var droppableElement = getElement(droppableId);
+
+    if (droppableElement && droppableElement.classList && !(droppableElement.className.includes('home-activity') ^ isHome)) {
+      var container = droppables[droppableId].subject.active;
+      return x > container.right || x < container.left || y < container.top || y > container.bottom;
+    }
+
+    return true;
+  };
+  var getDraggableParentId = function getDraggableParentId(droppables, isHome, center) {
+    var foldersLIst = filter(droppables, function (data) {
+      return data.includes('-drop-zone') || data.includes('activities') || data.includes('captures') || checkIsItemInsideFolder(data, isHome, center, droppables);
+    });
+    return Object.keys(foldersLIst)[0];
+  };
   var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
-    var droppedOnEle = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref) {
-      var className = _ref.className;
+    var droppedOnEle = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref2) {
+      var className = _ref2.className;
       return className.includes('-drop-zone');
     });
 
@@ -3497,8 +3517,8 @@
       return values((_values = {}, _values[droppedOnEle.className] = droppables[droppedOnEle.className], _values));
     }
 
-    var isActivity = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).some(function (_ref2) {
-      var id = _ref2.id;
+    var isActivity = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).some(function (_ref3) {
+      var id = _ref3.id;
       return id.includes('activityModalMount');
     });
 
@@ -3511,28 +3531,17 @@
     var _pageBorderBox$center = pageBorderBox.center,
         x = _pageBorderBox$center.x,
         y = _pageBorderBox$center.y;
-    var isHome = document.elementsFromPoint(x, y).some(function (_ref3) {
-      var id = _ref3.id;
+    var isHome = document.elementsFromPoint(x, y).some(function (_ref4) {
+      var id = _ref4.id;
       return id.includes('homeFolderModalMount');
     });
     var topElement = isHome ? document.getElementById('appear-home-on-top') : document.getElementById('appear-on-top');
 
     if (topElement) {
-      var draggableParentId = oldActiveDroppable !== draggable.descriptor.droppableId ? topElement.classList[0] + "-folder-items" : draggable.descriptor.droppableId;
-      var parentRndComponent = document.getElementsByClassName(draggableParentId.replace('-folder-items', ''))[0];
-      var parentPosition = parentRndComponent.getBoundingClientRect();
-      var newDroppables = {};
-      var isInsideParent = !(pageBorderBox.center.x > parentPosition.right || pageBorderBox.center.x < parentPosition.left || pageBorderBox.center.y < parentPosition.top || pageBorderBox.center.y > parentPosition.bottom);
+      var _values2;
 
-      if (isInsideParent) {
-        var _newDroppables;
-
-        newDroppables = (_newDroppables = {}, _newDroppables[draggableParentId] = droppables[draggableParentId], _newDroppables);
-      } else {
-        oldActiveDroppable = topElement.classList[0] + "-folder-items";
-      }
-
-      return isInsideParent ? values(getFilteredDroppableList(newDroppables)) : values(getFilteredDroppableList(droppables));
+      var draggableParentId = getDraggableParentId(droppables, !!isHome, pageBorderBox.center) || topElement.classList[0] + "-folder-items";
+      return values((_values2 = {}, _values2[draggableParentId] = droppables[draggableParentId], _values2));
     }
 
     return values(getFilteredDroppableList(droppables));
