@@ -76,6 +76,22 @@ export const getDraggableParentId = (droppables, isHome, center) => {
 };
 
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
+  const { x, y } = pageBorderBox.center;
+  const isFullScreen = document
+    .elementsFromPoint(x, y)
+    .some(
+      (ele) =>
+        ele.className.includes('ant-modal-content') &&
+        !!ele.closest('.fullscreen-folder-modal'),
+    );
+  if (isFullScreen) {
+    const ele = document.querySelector(
+      `[data-rbd-droppable-id*='-fr-folder-items']`,
+    );
+    const id = ele.getAttribute('data-rbd-droppable-id');
+    return values({ [id]: droppables[id] });
+  }
+
   const droppedOnEle = document
     .elementsFromPoint(pageBorderBox.left, pageBorderBox.top)
     .find(({ className }) => className.includes('-drop-zone'));
@@ -91,7 +107,6 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     return values({ activities: droppables.activities });
   }
 
-  const { x, y } = pageBorderBox.center;
   const isHome = document
     .elementsFromPoint(x, y)
     .some(({ id }) => id.includes('homeFolderModalMount'));

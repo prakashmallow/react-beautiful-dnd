@@ -517,15 +517,30 @@ var getDraggableParentId = function getDraggableParentId(droppables, isHome, cen
   return Object.keys(foldersLIst)[0];
 };
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
+  var _pageBorderBox$center = pageBorderBox.center,
+      x = _pageBorderBox$center.x,
+      y = _pageBorderBox$center.y;
+  var isFullScreen = document.elementsFromPoint(x, y).some(function (ele) {
+    return ele.className.includes('ant-modal-content') && !!ele.closest('.fullscreen-folder-modal');
+  });
+
+  if (isFullScreen) {
+    var _values;
+
+    var ele = document.querySelector("[data-rbd-droppable-id*='-fr-folder-items']");
+    var id = ele.getAttribute('data-rbd-droppable-id');
+    return values((_values = {}, _values[id] = droppables[id], _values));
+  }
+
   var droppedOnEle = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref2) {
     var className = _ref2.className;
     return className.includes('-drop-zone');
   });
 
   if (droppedOnEle) {
-    var _values;
+    var _values2;
 
-    return values((_values = {}, _values[droppedOnEle.className] = droppables[droppedOnEle.className], _values));
+    return values((_values2 = {}, _values2[droppedOnEle.className] = droppables[droppedOnEle.className], _values2));
   }
 
   var isActivity = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).some(function (_ref3) {
@@ -539,9 +554,6 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
     });
   }
 
-  var _pageBorderBox$center = pageBorderBox.center,
-      x = _pageBorderBox$center.x,
-      y = _pageBorderBox$center.y;
   var isHome = document.elementsFromPoint(x, y).some(function (_ref4) {
     var id = _ref4.id;
     return id.includes('homeFolderModalMount');
@@ -549,10 +561,10 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
   var topElement = isHome ? document.getElementById('appear-home-on-top') : document.getElementById('appear-on-top');
 
   if (topElement) {
-    var _values2;
+    var _values3;
 
     var draggableParentId = getDraggableParentId(droppables, !!isHome, pageBorderBox.center) || topElement.classList[0] + "-folder-items";
-    return values((_values2 = {}, _values2[draggableParentId] = droppables[draggableParentId], _values2));
+    return values((_values3 = {}, _values3[draggableParentId] = droppables[draggableParentId], _values3));
   }
 
   return values(getFilteredDroppableList(droppables));
