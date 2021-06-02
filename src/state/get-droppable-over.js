@@ -87,6 +87,11 @@ export default function getDroppableOver({
     pageBorderBox,
     droppables,
   ).filter((item: DroppableDimension): boolean => {
+    // Is manually triggered from the app - For mouse pointer position event
+    if (item.isManualTrigger) {
+      return true;
+    }
+
     // Cannot be a candidate when disabled
     if (!item.isEnabled) {
       return false;
