@@ -478,13 +478,15 @@ var toDraggableMap = memoizeOne(function (draggables) {
     return previous;
   }, {});
 });
-var filter = function filter(obj, predicate) {
+var filter = function filter(obj, predicate, isManualTrigger) {
   var key,
       result = {};
 
   for (key in obj) {
     if (obj.hasOwnProperty(key) && !predicate(key)) {
-      result[key] = obj[key];
+      result[key] = _extends({}, obj[key], {
+        isManualTrigger: isManualTrigger
+      });
     }
   }
 
@@ -510,16 +512,29 @@ var checkIsItemInsideFolder = function checkIsItemInsideFolder(droppableId, isHo
 
   return true;
 };
-var getDraggableParentId = function getDraggableParentId(droppables, isHome, center) {
+var getDraggableParentId = function getDraggableParentId(droppables, isHome, center, isManualTrigger) {
   var foldersLIst = filter(droppables, function (data) {
     return data.includes('-drop-zone') || data.includes('activities') || data.includes('captures') || checkIsItemInsideFolder(data, isHome, center, droppables);
-  });
+  }, isManualTrigger);
   return Object.keys(foldersLIst)[0];
 };
+var getOffsetValues = function getOffsetValues(draggableId) {
+  var draggableElement = document.querySelector("[data-rbd-draggable-id=\"" + draggableId + "\"]");
+  var offsetX = parseInt(draggableElement.getAttribute('data-offset-x'));
+  var offsetY = parseInt(draggableElement.getAttribute('data-offset-y'));
+  return {
+    offsetX: offsetX,
+    offsetY: offsetY
+  };
+};
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
-  var _pageBorderBox$center = pageBorderBox.center,
-      x = _pageBorderBox$center.x,
-      y = _pageBorderBox$center.y;
+  var _getOffsetValues = getOffsetValues(draggable.descriptor.id),
+      offsetX = _getOffsetValues.offsetX,
+      offsetY = _getOffsetValues.offsetY;
+
+  var x = offsetX ? offsetX + pageBorderBox.left : pageBorderBox.center.x;
+  var y = offsetY ? offsetY + pageBorderBox.top : pageBorderBox.center.y;
+  var isManualTrigger = !(isNaN(offsetX) && isNaN(offsetY));
   var isFullScreen = document.elementsFromPoint(x, y).some(function (ele) {
     return ele.className.includes('ant-modal-content') && !!ele.closest('.fullscreen-folder-modal');
   });
@@ -529,10 +544,12 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
 
     var ele = document.querySelector("[data-rbd-droppable-id*='-fr-folder-items']");
     var id = ele.getAttribute('data-rbd-droppable-id');
-    return values((_values = {}, _values[id] = droppables[id], _values));
+    return values((_values = {}, _values[id] = _extends({}, droppables[id], {
+      isManualTrigger: isManualTrigger
+    }), _values));
   }
 
-  var droppedOnEle = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).find(function (_ref2) {
+  var droppedOnEle = document.elementsFromPoint(x, y).find(function (_ref2) {
     var className = _ref2.className;
     return className.includes('-drop-zone');
   });
@@ -540,17 +557,21 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
   if (droppedOnEle) {
     var _values2;
 
-    return values((_values2 = {}, _values2[droppedOnEle.className] = droppables[droppedOnEle.className], _values2));
+    return values((_values2 = {}, _values2[droppedOnEle.className] = _extends({}, droppables[droppedOnEle.className], {
+      isManualTrigger: isManualTrigger
+    }), _values2));
   }
 
-  var isActivity = document.elementsFromPoint(pageBorderBox.left, pageBorderBox.top).some(function (_ref3) {
+  var isActivity = document.elementsFromPoint(x, y).some(function (_ref3) {
     var id = _ref3.id;
     return id.includes('activityModalMount');
   });
 
   if (isActivity) {
     return values({
-      activities: droppables.activities
+      activities: _extends({}, droppables.activities, {
+        isManualTrigger: isManualTrigger
+      })
     });
   }
 
@@ -563,8 +584,13 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
   if (topElement) {
     var _values3;
 
-    var draggableParentId = getDraggableParentId(droppables, !!isHome, pageBorderBox.center) || topElement.classList[0] + "-folder-items";
-    return values((_values3 = {}, _values3[draggableParentId] = droppables[draggableParentId], _values3));
+    var draggableParentId = getDraggableParentId(droppables, !!isHome, {
+      x: x,
+      y: y
+    }, isManualTrigger);
+    return draggableParentId ? values((_values3 = {}, _values3[draggableParentId] = _extends({}, droppables[draggableParentId], {
+      isManualTrigger: isManualTrigger
+    }), _values3)) : [];
   }
 
   return values(getFilteredDroppableList(droppables));
@@ -1945,6 +1971,10 @@ function getDroppableOver$1(_ref2) {
       draggable = _ref2.draggable,
       droppables = _ref2.droppables;
   var candidates = getDroppableList(draggable, pageBorderBox, droppables).filter(function (item) {
+    if (item.isManualTrigger) {
+      return true;
+    }
+
     if (!item.isEnabled) {
       return false;
     }

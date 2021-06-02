@@ -23,11 +23,11 @@ export const toDraggableMap = memoizeOne(
       return previous;
     }, {}),
 );
-export const filter = (obj, predicate) => {
+export const filter = (obj, predicate, isManualTrigger) => {
   let key, result = {};
   for (key in obj) {
     if (obj.hasOwnProperty(key) && !predicate(key)) {
-      result[key] = obj[key];
+      result[key] = { ...obj[key], isManualTrigger };
     }
   }
   return result;
@@ -63,7 +63,7 @@ export const checkIsItemInsideFolder = (
   return true;
 };
 
-export const getDraggableParentId = (droppables, isHome, center) => {
+export const getDraggableParentId = (droppables, isHome, center, isManualTrigger) => {
   const foldersLIst = filter(
     droppables,
     (data) =>
@@ -71,12 +71,25 @@ export const getDraggableParentId = (droppables, isHome, center) => {
       data.includes('activities') ||
       data.includes('captures') ||
       checkIsItemInsideFolder(data, isHome, center, droppables),
+    isManualTrigger
   );
   return Object.keys(foldersLIst)[0];
 };
 
+export const getOffsetValues = (draggableId) => {
+  const draggableElement = document.querySelector(
+    `[data-rbd-draggable-id="${draggableId}"]`,
+  );
+  const offsetX = parseInt(draggableElement.getAttribute('data-offset-x'));
+  const offsetY = parseInt(draggableElement.getAttribute('data-offset-y'));
+  return { offsetX, offsetY };
+};
+
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
-  const { x, y } = pageBorderBox.center;
+  const { offsetX, offsetY } = getOffsetValues(draggable.descriptor.id);
+  const x = offsetX ? offsetX + pageBorderBox.left : pageBorderBox.center.x;
+  const y = offsetY ? offsetY + pageBorderBox.top : pageBorderBox.center.y;
+  const isManualTrigger = !(isNaN(offsetX) && isNaN(offsetY));
   const isFullScreen = document
     .elementsFromPoint(x, y)
     .some(
@@ -89,22 +102,22 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
       `[data-rbd-droppable-id*='-fr-folder-items']`,
     );
     const id = ele.getAttribute('data-rbd-droppable-id');
-    return values({ [id]: droppables[id] });
+    return values({ [id]: { ...droppables[id], isManualTrigger } });
   }
 
   const droppedOnEle = document
-    .elementsFromPoint(pageBorderBox.left, pageBorderBox.top)
+    .elementsFromPoint(x,y)
     .find(({ className }) => className.includes('-drop-zone'));
   if (droppedOnEle) {
     return values({
-      [droppedOnEle.className]: droppables[droppedOnEle.className],
+      [droppedOnEle.className]: { ...droppables[droppedOnEle.className], isManualTrigger}
     });
   }
   const isActivity = document
-    .elementsFromPoint(pageBorderBox.left, pageBorderBox.top)
+    .elementsFromPoint(x,y)
     .some(({ id }) => id.includes('activityModalMount'));
   if (isActivity) {
-    return values({ activities: droppables.activities });
+    return values({ activities: { ...droppables.activities, isManualTrigger} });
   }
 
   const isHome = document
@@ -114,12 +127,13 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     ? document.getElementById('appear-home-on-top')
     : document.getElementById('appear-on-top');
   if (topElement) {
-    const draggableParentId =
-      getDraggableParentId(droppables, !!isHome, pageBorderBox.center) ||
-      `${topElement.classList[0]}-folder-items`;
-    return values({
-      [draggableParentId]: droppables[draggableParentId],
-    });
+    const draggableParentId = getDraggableParentId(droppables, !!isHome, {x,y}, isManualTrigger);
+    return draggableParentId ? values({
+      [draggableParentId]: {
+        ...droppables[draggableParentId],
+        isManualTrigger
+      }
+    }) : [];
   }
   return values(getFilteredDroppableList(droppables));
 };

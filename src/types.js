@@ -148,6 +148,8 @@ export type DroppableDimension = {|
   frame: ?Scrollable,
   // what is visible through the frame
   subject: DroppableSubject,
+  // Manual focus based on mouse pointer position
+  isManualTrigger: boolean,
 |};
 export type DraggableLocation = {|
   droppableId: DroppableId,
