@@ -5140,6 +5140,12 @@
         id: id
       });
 
+      if (destination.descriptor.id === 'activities') {
+        var x = getOffsetValues(draggable.descriptor.id).offsetX + targetRect.left;
+        var y = getOffsetValues(draggable.descriptor.id).offsetY + targetRect.top;
+        return x < childRect.right && x > childRect.left && y > childRect.top && y < childRect.bottom;
+      }
+
       if (didStartAfterCritical$1) {
         if (isDisplaced) {
           return targetEnd > childRect[axis.start] + threshold && targetEnd < childRect[axis.end] - threshold;
