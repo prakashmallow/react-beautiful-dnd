@@ -73,11 +73,11 @@ export default ({
         id,
       });
 
-      if (destination.descriptor.id === 'activities') {
-        const x =
-          getOffsetValues(draggable.descriptor.id).offsetX + targetRect.left;
-        const y =
-          getOffsetValues(draggable.descriptor.id).offsetY + targetRect.top;
+      const { offsetX, offsetY } = getOffsetValues(draggable.descriptor.id);
+
+      if (destination.descriptor.id === 'activities' && offsetX && offsetY) {
+        const x = offsetX + targetRect.left;
+        const y = offsetY + targetRect.top;
         return (
           x < childRect.right &&
           x > childRect.left &&

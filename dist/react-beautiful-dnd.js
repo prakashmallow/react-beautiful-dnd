@@ -5140,9 +5140,13 @@
         id: id
       });
 
-      if (destination.descriptor.id === 'activities') {
-        var x = getOffsetValues(draggable.descriptor.id).offsetX + targetRect.left;
-        var y = getOffsetValues(draggable.descriptor.id).offsetY + targetRect.top;
+      var _getOffsetValues = getOffsetValues(draggable.descriptor.id),
+          offsetX = _getOffsetValues.offsetX,
+          offsetY = _getOffsetValues.offsetY;
+
+      if (destination.descriptor.id === 'activities' && offsetX && offsetY) {
+        var x = offsetX + targetRect.left;
+        var y = offsetY + targetRect.top;
         return x < childRect.right && x > childRect.left && y > childRect.top && y < childRect.bottom;
       }
 
