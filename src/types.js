@@ -485,3 +485,8 @@ export type SensorAPI = {|
 |};
 
 export type Sensor = (api: SensorAPI) => void;
+
+export type CursorOffset = {|
+  offsetX: () => Number,
+  offsetY: () => Number,
+|};
