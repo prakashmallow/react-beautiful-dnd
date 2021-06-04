@@ -3455,7 +3455,7 @@
     return Array.prototype.slice.call(list);
   }
 
-  var getOffsetValues = memoizeOne(function (draggableId) {
+  var getOffsetValues = (function (draggableId) {
     var draggableElement = document.querySelector("[data-rbd-draggable-id=\"" + draggableId + "\"]");
     var offsetX = parseInt(draggableElement.getAttribute('data-offset-x'), 10);
     var offsetY = parseInt(draggableElement.getAttribute('data-offset-y'), 10);
