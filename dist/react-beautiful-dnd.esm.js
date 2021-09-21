@@ -472,8 +472,8 @@ var toDraggableMap = memoizeOne(function (draggables) {
   }, {});
 });
 var filter = function filter(obj, predicate, isManualTrigger) {
-  var key,
-      result = {};
+  var key;
+  var result = {};
 
   for (key in obj) {
     if (obj.hasOwnProperty(key) && !predicate(key)) {
@@ -512,7 +512,7 @@ var getDraggableParentId = function getDraggableParentId(droppables, isHome, cen
   var folderElement = Object.keys(foldersLIst).reduce(function (acc, data) {
     var _document$querySelect;
 
-    var order = Number(((_document$querySelect = document.querySelector("[data-rbd-droppable-id=\"" + data + "\"]")) == null ? void 0 : _document$querySelect.getAttribute('data-index-freespace-order')) || 0);
+    var order = Number((_document$querySelect = document.querySelector("[data-rbd-droppable-id=\"" + data + "\"]")) == null ? void 0 : _document$querySelect.getAttribute('data-index-freespace-order')) || 0;
 
     if (order > acc.order) {
       return {
@@ -594,7 +594,7 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
   if (topElement) {
     var _values3;
 
-    var draggableParentId = getDraggableParentId(droppables, !!isHome, {
+    var draggableParentId = getDraggableParentId(droppables, Boolean(isHome), {
       x: x,
       y: y
     }, isManualTrigger);
