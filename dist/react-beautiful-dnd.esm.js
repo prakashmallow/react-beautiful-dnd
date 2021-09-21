@@ -509,24 +509,7 @@ var getDraggableParentId = function getDraggableParentId(droppables, isHome, cen
   var foldersLIst = filter(droppables, function (data) {
     return data.includes('-drop-zone') || data.includes('activities') || data.includes('captures') || checkIsItemInsideFolder(data, isHome, center, droppables);
   }, isManualTrigger);
-  var folderElement = Object.keys(foldersLIst).reduce(function (acc, data) {
-    var _document$querySelect;
-
-    var order = Number(((_document$querySelect = document.querySelector("[data-rbd-droppable-id=\"" + data + "\"]")) == null ? void 0 : _document$querySelect.getAttribute('data-index-freespace-order')) || 0);
-
-    if (order > acc.order) {
-      return {
-        id: data,
-        order: order
-      };
-    }
-
-    return acc;
-  }, {
-    id: '',
-    order: 0
-  });
-  return (folderElement == null ? void 0 : folderElement.id) || Object.keys(foldersLIst)[0];
+  return Object.keys(foldersLIst)[0];
 };
 var getOffsetValues = function getOffsetValues(draggableId) {
   var draggableElement = document.querySelector("[data-rbd-draggable-id=\"" + draggableId + "\"]");
