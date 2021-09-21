@@ -24,8 +24,7 @@ export const toDraggableMap = memoizeOne(
     }, {}),
 );
 export const filter = (obj, predicate, isManualTrigger) => {
-  let key;
-  const result = {};
+  let key, result = {};
   for (key in obj) {
     if (obj.hasOwnProperty(key) && !predicate(key)) {
       result[key] = { ...obj[key], isManualTrigger };
@@ -64,12 +63,7 @@ export const checkIsItemInsideFolder = (
   return true;
 };
 
-export const getDraggableParentId = (
-  droppables,
-  isHome,
-  center,
-  isManualTrigger,
-) => {
+export const getDraggableParentId = (droppables, isHome, center, isManualTrigger) => {
   const foldersLIst = filter(
     droppables,
     (data) =>
@@ -77,16 +71,15 @@ export const getDraggableParentId = (
       data.includes('activities') ||
       data.includes('captures') ||
       checkIsItemInsideFolder(data, isHome, center, droppables),
-    isManualTrigger,
+    isManualTrigger
   );
   const folderElement = Object.keys(foldersLIst).reduce(
     (acc, data) => {
-      const order =
-        Number(
-          document
-            .querySelector(`[data-rbd-droppable-id="${data}"]`)
-            ?.getAttribute('data-index-freespace-order'),
-        ) || 0;
+      const order = Number(
+        document
+          .querySelector(`[data-rbd-droppable-id="${data}"]`)
+          ?.getAttribute('data-index-freespace-order') || 0,
+      );
       if (order > acc.order) {
         return {
           id: data,
@@ -133,23 +126,18 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
   }
 
   const droppedOnEle = document
-    .elementsFromPoint(x, y)
+    .elementsFromPoint(x,y)
     .find(({ className }) => className.includes('-drop-zone'));
   if (droppedOnEle) {
     return values({
-      [droppedOnEle.className]: {
-        ...droppables[droppedOnEle.className],
-        isManualTrigger,
-      },
+      [droppedOnEle.className]: { ...droppables[droppedOnEle.className], isManualTrigger}
     });
   }
   const isActivity = document
-    .elementsFromPoint(x, y)
+    .elementsFromPoint(x,y)
     .some(({ id }) => id.includes('activityModalMount'));
   if (isActivity) {
-    return values({
-      activities: { ...droppables.activities, isManualTrigger },
-    });
+    return values({ activities: { ...droppables.activities, isManualTrigger} });
   }
 
   const isHome = document
@@ -159,20 +147,13 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     ? document.getElementById('appear-home-on-top')
     : document.getElementById('appear-on-top');
   if (topElement) {
-    const draggableParentId = getDraggableParentId(
-      droppables,
-      Boolean(isHome),
-      { x, y },
-      isManualTrigger,
-    );
-    return draggableParentId
-      ? values({
-          [draggableParentId]: {
-            ...droppables[draggableParentId],
-            isManualTrigger,
-          },
-        })
-      : [];
+    const draggableParentId = getDraggableParentId(droppables, !!isHome, {x,y}, isManualTrigger);
+    return draggableParentId ? values({
+      [draggableParentId]: {
+        ...droppables[draggableParentId],
+        isManualTrigger
+      }
+    }) : [];
   }
   return values(getFilteredDroppableList(droppables));
 };
