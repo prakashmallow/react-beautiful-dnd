@@ -73,7 +73,27 @@ export const getDraggableParentId = (droppables, isHome, center, isManualTrigger
       checkIsItemInsideFolder(data, isHome, center, droppables),
     isManualTrigger
   );
-  return Object.keys(foldersLIst)[0];
+  const folderElement = Object.keys(foldersLIst).reduce(
+    (acc, data) => {
+      const order = Number(
+        document
+          .querySelector(`[data-rbd-droppable-id="${data}"]`)
+          ?.getAttribute('data-index-freespace-order') || 0,
+      );
+      if (order > acc.order) {
+        return {
+          id: data,
+          order,
+        };
+      }
+      return acc;
+    },
+    {
+      id: '',
+      order: 0,
+    },
+  );
+  return folderElement?.id || Object.keys(foldersLIst)[0];
 };
 
 export const getOffsetValues = (draggableId) => {
