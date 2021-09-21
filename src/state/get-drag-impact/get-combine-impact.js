@@ -14,6 +14,7 @@ import getDidStartAfterCritical from '../did-start-after-critical';
 import getDisplacedBy from '../get-displaced-by';
 import getIsDisplaced from '../get-is-displaced';
 import removeDraggableFromList from '../remove-draggable-from-list';
+import getOffsetValues from '../get-offset-values';
 
 type Args = {|
   draggable: DraggableDimension,
@@ -38,6 +39,7 @@ export default ({
   if (!destination.isCombineEnabled) {
     return null;
   }
+
   const axis: Axis = destination.axis;
   const displacedBy: DisplacedBy = getDisplacedBy(
     destination.axis,
@@ -70,6 +72,19 @@ export default ({
         displaced: previousImpact.displaced,
         id,
       });
+
+      const { offsetX, offsetY } = getOffsetValues(draggable.descriptor.id);
+
+      if (destination.descriptor.id === 'activities' && offsetX && offsetY) {
+        const x = offsetX + targetRect.left;
+        const y = offsetY + targetRect.top;
+        return (
+          x < childRect.right &&
+          x > childRect.left &&
+          y > childRect.top &&
+          y < childRect.bottom
+        );
+      }
 
       /*
         Only combining when in the combine region

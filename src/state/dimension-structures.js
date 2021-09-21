@@ -7,6 +7,7 @@ import type {
   DraggableDimension,
   DraggableDimensionMap,
 } from '../types';
+import getOffsetValues from './get-offset-values';
 
 export const toDroppableMap = memoizeOne(
   (droppables: DroppableDimension[]): DroppableDimensionMap =>
@@ -63,7 +64,12 @@ export const checkIsItemInsideFolder = (
   return true;
 };
 
-export const getDraggableParentId = (droppables, isHome, center, isManualTrigger) => {
+export const getDraggableParentId = (
+  droppables,
+  isHome,
+  center,
+  isManualTrigger,
+) => {
   const foldersLIst = filter(
     droppables,
     (data) =>
@@ -71,18 +77,9 @@ export const getDraggableParentId = (droppables, isHome, center, isManualTrigger
       data.includes('activities') ||
       data.includes('captures') ||
       checkIsItemInsideFolder(data, isHome, center, droppables),
-    isManualTrigger
+    isManualTrigger,
   );
   return Object.keys(foldersLIst)[0];
-};
-
-export const getOffsetValues = (draggableId) => {
-  const draggableElement = document.querySelector(
-    `[data-rbd-draggable-id="${draggableId}"]`,
-  );
-  const offsetX = parseInt(draggableElement.getAttribute('data-offset-x'));
-  const offsetY = parseInt(draggableElement.getAttribute('data-offset-y'));
-  return { offsetX, offsetY };
 };
 
 export const getDroppableList = (draggable, pageBorderBox, droppables) => {
@@ -95,7 +92,7 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     .some(
       (ele) =>
         ele.className.includes('ant-modal-content') &&
-        !!ele.closest('.fullscreen-folder-modal'),
+        Boolean(ele.closest('.fullscreen-folder-modal')),
     );
   if (isFullScreen) {
     const ele = document.querySelector(
@@ -106,18 +103,23 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
   }
 
   const droppedOnEle = document
-    .elementsFromPoint(x,y)
+    .elementsFromPoint(x, y)
     .find(({ className }) => className.includes('-drop-zone'));
   if (droppedOnEle) {
     return values({
-      [droppedOnEle.className]: { ...droppables[droppedOnEle.className], isManualTrigger}
+      [droppedOnEle.className]: {
+        ...droppables[droppedOnEle.className],
+        isManualTrigger,
+      },
     });
   }
   const isActivity = document
-    .elementsFromPoint(x,y)
+    .elementsFromPoint(x, y)
     .some(({ id }) => id.includes('activityModalMount'));
   if (isActivity) {
-    return values({ activities: { ...droppables.activities, isManualTrigger} });
+    return values({
+      activities: { ...droppables.activities, isManualTrigger },
+    });
   }
 
   const isHome = document
@@ -127,13 +129,20 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
     ? document.getElementById('appear-home-on-top')
     : document.getElementById('appear-on-top');
   if (topElement) {
-    const draggableParentId = getDraggableParentId(droppables, !!isHome, {x,y}, isManualTrigger);
-    return draggableParentId ? values({
-      [draggableParentId]: {
-        ...droppables[draggableParentId],
-        isManualTrigger
-      }
-    }) : [];
+    const draggableParentId = getDraggableParentId(
+      droppables,
+      Boolean(isHome),
+      { x, y },
+      isManualTrigger,
+    );
+    return draggableParentId
+      ? values({
+          [draggableParentId]: {
+            ...droppables[draggableParentId],
+            isManualTrigger,
+          },
+        })
+      : [];
   }
   return values(getFilteredDroppableList(droppables));
 };

@@ -459,6 +459,16 @@ function toArray(list) {
   return Array.prototype.slice.call(list);
 }
 
+var getOffsetValues = (function (draggableId) {
+  var draggableElement = document.querySelector("[data-rbd-draggable-id=\"" + draggableId + "\"]");
+  var offsetX = parseInt(draggableElement.getAttribute('data-offset-x'), 10);
+  var offsetY = parseInt(draggableElement.getAttribute('data-offset-y'), 10);
+  return {
+    offsetX: offsetX,
+    offsetY: offsetY
+  };
+});
+
 var toDroppableMap = memoizeOne(function (droppables) {
   return droppables.reduce(function (previous, current) {
     previous[current.descriptor.id] = current;
@@ -511,15 +521,6 @@ var getDraggableParentId = function getDraggableParentId(droppables, isHome, cen
   }, isManualTrigger);
   return Object.keys(foldersLIst)[0];
 };
-var getOffsetValues = function getOffsetValues(draggableId) {
-  var draggableElement = document.querySelector("[data-rbd-draggable-id=\"" + draggableId + "\"]");
-  var offsetX = parseInt(draggableElement.getAttribute('data-offset-x'));
-  var offsetY = parseInt(draggableElement.getAttribute('data-offset-y'));
-  return {
-    offsetX: offsetX,
-    offsetY: offsetY
-  };
-};
 var getDroppableList = function getDroppableList(draggable, pageBorderBox, droppables) {
   var _getOffsetValues = getOffsetValues(draggable.descriptor.id),
       offsetX = _getOffsetValues.offsetX,
@@ -529,7 +530,7 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
   var y = offsetY ? offsetY + pageBorderBox.top : pageBorderBox.center.y;
   var isManualTrigger = !(isNaN(offsetX) && isNaN(offsetY));
   var isFullScreen = document.elementsFromPoint(x, y).some(function (ele) {
-    return ele.className.includes('ant-modal-content') && !!ele.closest('.fullscreen-folder-modal');
+    return ele.className.includes('ant-modal-content') && Boolean(ele.closest('.fullscreen-folder-modal'));
   });
 
   if (isFullScreen) {
@@ -577,7 +578,7 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
   if (topElement) {
     var _values3;
 
-    var draggableParentId = getDraggableParentId(droppables, !!isHome, {
+    var draggableParentId = getDraggableParentId(droppables, Boolean(isHome), {
       x: x,
       y: y
     }, isManualTrigger);
@@ -2142,6 +2143,16 @@ var getCombineImpact = (function (_ref) {
       displaced: previousImpact.displaced,
       id: id
     });
+
+    var _getOffsetValues = getOffsetValues(draggable.descriptor.id),
+        offsetX = _getOffsetValues.offsetX,
+        offsetY = _getOffsetValues.offsetY;
+
+    if (destination.descriptor.id === 'activities' && offsetX && offsetY) {
+      var x = offsetX + targetRect.left;
+      var y = offsetY + targetRect.top;
+      return x < childRect.right && x > childRect.left && y > childRect.top && y < childRect.bottom;
+    }
 
     if (didStartAfterCritical$1) {
       if (isDisplaced) {
