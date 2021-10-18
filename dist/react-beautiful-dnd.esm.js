@@ -569,8 +569,21 @@ var getDroppableList = function getDroppableList(draggable, pageBorderBox, dropp
     });
   }
 
-  var isHome = document.elementsFromPoint(x, y).some(function (_ref4) {
+  var isCapture = document.elementsFromPoint(x, y).some(function (_ref4) {
     var id = _ref4.id;
+    return id.includes('captureModalMount');
+  });
+
+  if (isCapture) {
+    return values({
+      captures: _extends({}, droppables.captures, {
+        isManualTrigger: isManualTrigger
+      })
+    });
+  }
+
+  var isHome = document.elementsFromPoint(x, y).some(function (_ref5) {
+    var id = _ref5.id;
     return id.includes('homeFolderModalMount');
   });
   var topElement = isHome ? document.getElementById('appear-home-on-top') : document.getElementById('appear-on-top');

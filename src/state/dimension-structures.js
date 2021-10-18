@@ -121,6 +121,14 @@ export const getDroppableList = (draggable, pageBorderBox, droppables) => {
       activities: { ...droppables.activities, isManualTrigger },
     });
   }
+  const isCapture = document
+    .elementsFromPoint(x, y)
+    .some(({ id }) => id.includes('captureModalMount'));
+  if (isCapture) {
+    return values({
+      captures: { ...droppables.captures, isManualTrigger },
+    });
+  }
 
   const isHome = document
     .elementsFromPoint(x, y)
