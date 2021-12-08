@@ -53,7 +53,12 @@ export const checkIsItemInsideFolder = (
     droppableElement.classList &&
     !(droppableElement.className.includes('home-activity') ^ isHome)
   ) {
-    const container = droppables[droppableId].subject.active;
+    const container = droppables[droppableId].subject.active || {
+      right: 0,
+      left: 0,
+      top: 0,
+      bottom: 0,
+    };
     return (
       x > container.right ||
       x < container.left ||

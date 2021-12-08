@@ -3505,7 +3505,12 @@
     var droppableElement = getElement(droppableId);
 
     if (droppableElement && droppableElement.classList && !(droppableElement.className.includes('home-activity') ^ isHome)) {
-      var container = droppables[droppableId].subject.active;
+      var container = droppables[droppableId].subject.active || {
+        right: 0,
+        left: 0,
+        top: 0,
+        bottom: 0
+      };
       return x > container.right || x < container.left || y < container.top || y > container.bottom;
     }
 
